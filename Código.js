@@ -1,7 +1,7 @@
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
-    .setTitle('Gestión de asuntos particulares');
+    .setTitle('Gestión de asuntos particulares de docentes');
 }
 
 function incluir(nombre) {
