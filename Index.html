@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base target="_top" />
+  <title>Gestión de Días de Asuntos Particulares</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    h2, h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    #contenido {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .marco-blanco {
+      background: #fff;
+      padding: 25px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgb(0 0 0 / 0.08);
+    }
+
+    .seccion {
+      margin-bottom: 40px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      color: #444;
+      font-size: 1rem;
+    }
+
+    input[type="date"],
+    textarea {
+      margin-top: 6px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border: 1.5px solid #ccc;
+      border-radius: 5px;
+      transition: border-color 0.3s ease;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+    }
+
+    input[type="date"]:focus,
+    textarea:focus {
+      border-color: #4a90e2;
+      outline: none;
+      box-shadow: 0 0 6px #4a90e2aa;
+    }
+
+    button[type="submit"] {
+      align-self: flex-start;
+      background-color: #4a90e2;
+      border: none;
+      color: white;
+      padding: 10px 22px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+      box-shadow: 0 3px 6px rgb(74 144 226 / 0.5);
+    }
+
+    button[type="submit"]:hover {
+      background-color: #357ABD;
+    }
+
+    #mensaje {
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    .error {
+      color: #e74c3c;
+    }
+
+    .exito {
+      color: #27ae60;
+    }
+
+    #nombreUsuario,
+    #diasAprobados {
+      font-weight: 700;
+      color: #34495e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      table-layout: fixed; /* para que las columnas no se expandan demasiado */
+      word-wrap: break-word; /* para que el texto largo se rompa */
+    }
+
+    thead {
+      background-color: #4a90e2;
+      color: white;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f2f6fc;
+    }
+
+    tbody tr:hover {
+      background-color: #dceefc;
+    }
+
+    button.btn-aprobar,
+    button.btn-denegar {
+      font-weight: 600;
+      padding: 6px 14px;
+      margin: 0 4px 4px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    button.btn-aprobar {
+      background-color: #27ae60;
+      color: white;
+      box-shadow: 0 2px 5px rgb(39 174 96 / 0.6);
+    }
+
+    button.btn-aprobar:hover {
+      background-color: #1e8449;
+    }
+
+    button.btn-denegar {
+      background-color: #e74c3c;
+      color: white;
+      box-shadow: 0 2px 5px rgb(231 76 60 / 0.6);
+    }
+
+    button.btn-denegar:hover {
+      background-color: #b03a2e;
+    }
+
+    @media (max-width: 720px) {
+      #contenido {
+        padding: 15px 0;
+      }
+
+      .marco-blanco {
+        padding: 15px 20px;
+      }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead tr {
+        display: none;
+      }
+
+      tbody tr {
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px;
+        background: white;
+      }
+
+      tbody td {
+        padding: 10px 10px 10px 50%;
+        position: relative;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #eee;
+      }
+
+      tbody td:last-child {
+        border-bottom: none;
+      }
+
+      tbody td::before {
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: 700;
+        color: #555;
+        text-align: left;
+      }
+
+      tbody td:nth-of-type(1)::before { content: "Fecha y Hora Solicitud"; }
+      tbody td:nth-of-type(2)::before { content: "Usuario"; }
+      tbody td:nth-of-type(3)::before { content: "Fecha solicitada"; }
+      tbody td:nth-of-type(4)::before { content: "Estado"; }
+      tbody td:nth-of-type(5)::before { content: "Comentario"; }
+      tbody td:nth-of-type(6)::before { content: "Año escolar"; }
+      tbody td:nth-of-type(7)::before { content: "Email"; }
+      tbody td:nth-of-type(8)::before { content: "Días aprobados"; }
+      tbody td:nth-of-type(9)::before { content: "Acciones"; }
+    }
+  </style>
+</head>
+<body>
+<?!= incluir('Encabezado'); ?>
+
+  <div id="contenido">
+    <div class="marco-blanco" id="app">Cargando...</div>
+    
+  </div>
+
+  <script>
+    google.script.run.withSuccessHandler(mostrarTodo).esDireccion();
+
+    let esDireccionGlobal = false;
+
+    function mostrarTodo(esDireccion) {
+      esDireccionGlobal = esDireccion;
+      document.getElementById('app').innerHTML = `
+        <div class="seccion" id="formularioSeccion"></div>
+        <div class="seccion" id="pendientesSeccion">
+          <h3>Solicitudes Pendientes</h3>
+           <div id="mensajeEstado" style="font-weight: bold; margin-bottom: 10px;"></div>
+          <div id="tabla">Cargando...</div>
+        </div>
+        <div class="seccion" id="misSolicitudesSeccion">
+          <h3>Mis Solicitudes</h3>
+          <div id="listaMisSolicitudes">Cargando...</div>
+        </div>
+      `;
+      mostrarFormulario();
+      cargarSolicitudes(esDireccion);
+      cargarMisSolicitudes();
+    }
+
+    function mostrarFormulario() {
+      document.getElementById('formularioSeccion').innerHTML = `
+        <h2>Solicitar día de asuntos particulares</h2>
+        <div id="nombreUsuario" style="margin-bottom: 10px; font-weight: bold;"></div>
+        <form id="formularioSolicitud" novalidate>
+          <label>Fecha solicitada:
+            <input type="date" name="fechaSolicitada" required>
+          </label>
+          <label>Comentarios (opcional):
+            <textarea name="comentario" rows="3" placeholder="Escribe aquí tus comentarios..."></textarea>
+          </label>
+          <button type="submit">Enviar solicitud</button>
+        </form>
+        <div id="diasAprobados" style="margin-top: 10px; font-weight: bold;"></div>
+        <div id="mensaje"></div>
+      `;
+
+      google.script.run.withSuccessHandler(nombre => {
+        document.getElementById('nombreUsuario').textContent = '👤 Usuario: ' + nombre;
+      }).obtenerNombreUsuario();
+
+      google.script.run.withSuccessHandler(email => {
+        google.script.run.withSuccessHandler(total => {
+          document.getElementById('diasAprobados').textContent =
+            `Tienes ${total} día(s) de asuntos particulares ya aprobados.`;
+        }).contarDiasAprobados(email);
+      }).obtenerEmailUsuario();
+
+      document.getElementById('formularioSolicitud').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const datos = new FormData(this);
+        const fecha = datos.get('fechaSolicitada');
+        const comentario = datos.get('comentario');
+        const mensaje = document.getElementById('mensaje');
+        mensaje.textContent = '';
+        mensaje.className = '';
+
+        if (!fecha) {
+          mensaje.textContent = '❌ Debes seleccionar una fecha.';
+          mensaje.className = 'error';
+          return;
+        }
+
+        google.script.run.withSuccessHandler(nombreUsuario => {
+          google.script.run.withSuccessHandler(() => {
+            mensaje.textContent = '✅ Solicitud enviada correctamente.';
+            mensaje.className = 'exito';
+            document.getElementById('formularioSolicitud').reset();
+            cargarSolicitudes(esDireccionGlobal);
+            cargarMisSolicitudes();
+          }).withFailureHandler(err => {
+            mensaje.textContent = '❌ ' + (err.message || 'Error desconocido');
+            mensaje.className = 'error';
+          }).enviarSolicitud(fecha, comentario, nombreUsuario);
+        }).obtenerNombreUsuario();
+      });
+    }
+
+    function cargarMisSolicitudes() {
+      google.script.run.withSuccessHandler(misSolicitudes => {
+        const contenedor = document.getElementById("listaMisSolicitudes");
+        if (!misSolicitudes || misSolicitudes.length === 0) {
+          contenedor.innerHTML = "<p>No has realizado ninguna solicitud.</p>";
+          return;
+        }
+
+        contenedor.innerHTML = misSolicitudes.map(s => `
+          <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
+            <p><strong>${s.fechaSolicitada}</strong> - <em>${s.estado}</em></p>
+            <p><strong>Comentario:</strong> ${s.comentario || 'Ninguno'}</p>
+            <p><strong>Curso:</strong> ${s.anoEscolar || 'No especificado'}</p>
+            <p><small>Enviado: ${s.marcaTiempo}</small></p>
+          </div>
+        `).join("");
+      }).obtenerMisSolicitudes();
+    }
+
+    function cargarSolicitudes(esDireccion) {
+      google.script.run.withSuccessHandler(solicitudes => {
+        mostrarSolicitudes(solicitudes, esDireccion);
+      }).obtenerSolicitudesPendientes();
+    }
+
+    function mostrarSolicitudes(solicitudes, esDireccion) {
+      const contenedor = document.getElementById('tabla');
+      if (!solicitudes || solicitudes.length === 0) {
+        contenedor.innerHTML = '<p>No hay solicitudes pendientes.</p>';
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha y Hora Solicitud</th>
+              <th>Usuario</th>
+              <th>Fecha solicitada</th>
+              <th>Estado</th>
+              <th>Comentario</th>
+              <th>Año escolar</th>
+              <th>Email</th>
+              <th>Días aprobados</th>
+              ${esDireccion ? '<th>Acciones</th>' : ''}
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      solicitudes.forEach((s, idx) => {
+        const idFila = `fila-${idx}`;
+        html += `
+          <tr id="${idFila}">
+            <td>${s.marcaTiempo || ''}</td>
+            <td>${s.usuario || ''}</td>
+            <td>${s.fechaSolicitada || ''}</td>
+            <td>${s.estado || ''}</td>
+            <td>${s.comentario || ''}</td>
+            <td>${s.anoEscolar || ''}</td>
+            <td>${s.email || ''}</td>
+            <td id="dias-${idx}">Cargando...</td>
+            ${esDireccion ? `
+              <td>
+                <button class="btn-aprobar" onclick="actualizarEstado(${s.fila}, 'Aprobado')">Aprobar</button>
+                <button class="btn-denegar" onclick="actualizarEstado(${s.fila}, 'Denegado')">Denegar</button>
+              </td>` : ''}
+          </tr>
+        `;
+
+        google.script.run.withSuccessHandler(total => {
+          const celda = document.getElementById(`dias-${idx}`);
+          if (celda) celda.innerText = total;
+        }).contarDiasAprobados(s.email);
+      });
+
+      html += `</tbody></table>`;
+      contenedor.innerHTML = html;
+    }
+
+
+    function actualizarEstado(fila, nuevoEstado) {
+  google.script.run
+    .withSuccessHandler(() => {
+      const mensaje = document.getElementById("mensajeEstado");
+      mensaje.textContent = `✅ Solicitud ${nuevoEstado.toLowerCase()} correctamente.`;
+      mensaje.style.color = "green";
+
+      cargarSolicitudes(esDireccionGlobal);
+      cargarMisSolicitudes();
+
+      setTimeout(() => {
+        mensaje.textContent = "";
+      }, 3000);
+    })
+    .withFailureHandler(err => {
+      const mensaje = document.getElementById("mensajeEstado");
+      mensaje.textContent = `❌ Error al actualizar: ${err.message || err}`;
+      mensaje.style.color = "red";
+
+      setTimeout(() => {
+        mensaje.textContent = "";
+      }, 4000);
+    })
+    .actualizarEstado(fila, nuevoEstado);
+}
+
+  </script>
+</body>
+</html>
