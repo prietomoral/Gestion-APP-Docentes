@@ -406,7 +406,7 @@ function avisarSolicitudesProximasAVencer() {
 
   cuerpo += "\nPuedes revisarlas desde el panel de gestión habitual.";
 
-  const asunto = "📌 Solicitudes próximas a vencer (pendientes de revisión)";
+  const asunto = "📌 *ASUNTOS PARTICULARES - Solicitudes próximas a vencer (pendientes de revisión)";
   destinatarios.forEach(email => {
     MailApp.sendEmail({
       to: email,
