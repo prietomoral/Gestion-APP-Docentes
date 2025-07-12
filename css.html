@@ -223,4 +223,55 @@
       tbody td:nth-of-type(8)::before { content: "Días aprobados"; }
       tbody td:nth-of-type(9)::before { content: "Acciones"; }
     }
+
+    /* Estilos generales para cada solicitud */
+.solicitud {
+  border-left: 6px solid #ccc;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: background-color 0.3s ease;
+}
+
+/* Aprobadas: verde */
+.solicitud-aprobada {
+  border-left-color: #4CAF50;
+  background-color: #e8f5e9;
+}
+
+.estado-texto.solicitud-aprobada {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+/* Denegadas: rojo */
+.solicitud-denegada {
+  border-left-color: #f44336;
+  background-color: #ffebee;
+}
+
+.estado-texto.solicitud-denegada {
+  color: #c62828;
+  font-weight: bold;
+}
+
+/* Pendientes: amarillo */
+.solicitud-pendiente {
+  border-left-color: #ff9800;
+  background-color: #fff8e1;
+}
+
+.estado-texto.solicitud-pendiente {
+  color: #ef6c00;
+  font-weight: bold;
+}
+
+/* Icono del estado */
+.estado-icono {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
   </style>

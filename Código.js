@@ -1,17 +1,50 @@
+/**
+ * Función principal para servir la página web.
+ * Se ejecuta cuando se accede a la URL del Web App.
+ * Carga la plantilla HTML 'Index', la evalúa y le pone un título.
+ * 
+ * @returns {HtmlOutput} Página HTML principal del web app.
+ */
 function doGet() {
-  return HtmlService.createTemplateFromFile('Index')
-    .evaluate()
-    .setTitle('Gestión de asuntos particulares de docentes');
+  // Crear la plantilla a partir del archivo HTML 'Index'
+  const plantilla = HtmlService.createTemplateFromFile('Index');
+  
+  // Evaluar la plantilla para generar el contenido final
+  const salidaHtml = plantilla.evaluate();
+  
+  // Configurar el título de la pestaña/navegador
+  salidaHtml.setTitle('Gestión de asuntos particulares de docentes');
+  
+  return salidaHtml;
 }
 
+/**
+ * Función auxiliar para incluir contenido HTML de otros archivos.
+ * Esto permite dividir el HTML en partes (parciales) y reutilizarlas.
+ * 
+ * @param {string} nombre - Nombre del archivo HTML (sin extensión) a incluir.
+ * @returns {string} Contenido HTML del archivo solicitado.
+ */
 function incluir(nombre) {
   return HtmlService.createHtmlOutputFromFile(nombre).getContent();
 }
 
+/**
+ * Devuelve el contenido HTML del formulario de solicitud.
+ * Se usa para cargar dinámicamente la parte del formulario.
+ * 
+ * @returns {string} Código HTML del formulario.
+ */
 function getFormularioHtml() {
   return HtmlService.createHtmlOutputFromFile('Formulario').getContent();
 }
 
+/**
+ * Devuelve el contenido HTML del panel de gestión o administración.
+ * Se usa para cargar dinámicamente la parte del panel.
+ * 
+ * @returns {string} Código HTML del panel.
+ */
 function getPanelHtml() {
   return HtmlService.createHtmlOutputFromFile('Panel').getContent();
 }
@@ -89,10 +122,15 @@ function enviarSolicitud(fechaSolicitada, comentario) {
 
   validarFechaNoPasada(fecha);
   validarAntelacion(fecha);
-   validarMaxAntelacion(fecha);  // <-- Validación máxima de 3 meses añadida
+  validarMaxAntelacion(fecha);  // <-- Validación máxima de 3 meses añadida
   validarNoFinDeSemana(fecha);
   validarDuplicado(fecha, email, anoEscolar, hoja);
   validarLimiteDias(fecha, email, anoEscolar, hoja);
+
+  const resultado = esFechaPermitida(fecha);
+  if (!resultado.valido) {
+    throw new Error("❌ No se puede solicitar ese día: " + resultado.motivo);
+  }
 
   if (comentario && comentario.length > 200) {
     throw new Error("❌ El comentario no puede superar los 200 caracteres.");
@@ -100,6 +138,7 @@ function enviarSolicitud(fechaSolicitada, comentario) {
 
   hoja.appendRow([new Date(), nombre, fecha, "Pendiente", comentario || "", anoEscolar, email]);
 }
+
 
 
 
@@ -176,6 +215,29 @@ function validarMaxAntelacion(fecha) {
   }
 }
 
+//Valida q no sea una excepcion 15 primeros dias lectivos o evaluaciones
+
+function esFechaPermitida(fecha) {
+  const hoja = SpreadsheetApp.getActive().getSheetByName("Excepciones");
+  if (!hoja) return { valido: true };
+
+  const excepciones = hoja.getDataRange().getValues().slice(1); // Excluye encabezado
+  const fechaStr = Utilities.formatDate(fecha, Session.getScriptTimeZone(), "yyyy-MM-dd");
+
+  for (let i = 0; i < excepciones.length; i++) {
+    const [fechaExcepcion, motivo] = excepciones[i];
+    if (!fechaExcepcion) continue;
+
+    const fechaExStr = Utilities.formatDate(new Date(fechaExcepcion), Session.getScriptTimeZone(), "yyyy-MM-dd");
+
+    if (fechaStr === fechaExStr) {
+      return { valido: false, motivo: motivo || "Fecha restringida" };
+    }
+  }
+
+  return { valido: true };
+}
+
 
 function obtenerSolicitudesPendientes() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Solicitudes");
@@ -220,8 +282,6 @@ function obtenerSolicitudesPendientes() {
 
   return solicitudes;
 }
-
-
 
 
 

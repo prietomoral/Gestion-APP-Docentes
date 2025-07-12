@@ -1,0 +1,56 @@
+<div class="seccion" id="formularioSeccion">
+  <h2>Solicitar día de asuntos particulares</h2>
+  <div id="nombreUsuario" class="info">Cargando usuario...</div>
+  <form id="formularioSolicitud" novalidate>
+    <label>Fecha solicitada:
+      <input type="date" name="fechaSolicitada" required>
+    </label>
+    <label>Comentarios (opcional):
+      <textarea name="comentario" rows="3" placeholder="Escribe aquí tus comentarios..."></textarea>
+    </label>
+    <button type="submit">Enviar solicitud</button>
+  </form>
+  <div id="diasAprobados" class="info">Cargando días aprobados...</div>
+  <div id="mensaje"></div>
+</div>
+
+<script>
+  google.script.run.withSuccessHandler(nombre => {
+    document.getElementById('nombreUsuario').textContent = '👤 Usuario: ' + nombre;
+  }).obtenerNombreUsuario();
+
+  google.script.run.withSuccessHandler(email => {
+    google.script.run.withSuccessHandler(total => {
+      document.getElementById('diasAprobados').textContent =
+        `Tienes ${total} día(s) de asuntos particulares ya aprobados.`;
+    }).contarDiasAprobados(email);
+  }).obtenerEmailUsuario();
+
+  document.getElementById('formularioSolicitud').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const datos = new FormData(this);
+    const fecha = datos.get('fechaSolicitada');
+    const comentario = datos.get('comentario');
+    const mensaje = document.getElementById('mensaje');
+    mensaje.textContent = '';
+    mensaje.className = '';
+
+    if (!fecha) {
+      mensaje.textContent = '❌ Debes seleccionar una fecha.';
+      mensaje.className = 'error';
+      return;
+    }
+
+    google.script.run.withSuccessHandler(nombreUsuario => {
+      google.script.run.withSuccessHandler(() => {
+        mensaje.textContent = '✅ Solicitud enviada correctamente.';
+        mensaje.className = 'exito';
+        document.getElementById('formularioSolicitud').reset();
+        window.dispatchEvent(new CustomEvent('solicitudEnviada'));
+      }).withFailureHandler(err => {
+        mensaje.textContent = '❌ ' + (err.message || 'Error desconocido');
+        mensaje.className = 'error';
+      }).enviarSolicitud(fecha, comentario, nombreUsuario);
+    }).obtenerNombreUsuario();
+  });
+</script>

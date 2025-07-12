@@ -1,0 +1,96 @@
+<div class="seccion" id="pendientesSeccion">
+  <h3>Solicitudes Pendientes</h3>
+  <div id="mensajeEstado" class="estado"></div>
+  <div id="tabla">Cargando...</div>
+</div>
+
+<script>
+  function cargarSolicitudesPendientes() {
+    google.script.run.withSuccessHandler(esDireccion => {
+      google.script.run.withSuccessHandler(solicitudes => {
+        mostrarSolicitudes(solicitudes, esDireccion);
+      }).obtenerSolicitudesPendientes();
+    }).esDireccion();
+  }
+
+  function mostrarSolicitudes(solicitudes, esDireccion) {
+    const contenedor = document.getElementById('tabla');
+    if (!solicitudes || solicitudes.length === 0) {
+      contenedor.innerHTML = '<p>No hay solicitudes pendientes.</p>';
+      return;
+    }
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha y Hora Solicitud</th>
+            <th>Usuario</th>
+            <th>Fecha solicitada</th>
+            <th>Estado</th>
+            <th>Comentario</th>
+            <th>Año escolar</th>
+            <th>Email</th>
+            <th>Días aprobados</th>
+            ${esDireccion ? '<th>Acciones</th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    solicitudes.forEach((s, idx) => {
+      html += `
+        <tr>
+          <td>${s.marcaTiempo || ''}</td>
+          <td>${s.usuario || ''}</td>
+          <td>${s.fechaSolicitada || ''}</td>
+          <td>${s.estado || ''}</td>
+          <td>${s.comentario || ''}</td>
+          <td>${s.anoEscolar || ''}</td>
+          <td>${s.email || ''}</td>
+          <td id="dias-${idx}">Cargando...</td>
+          ${esDireccion ? `
+            <td>
+              <button class="btn-aprobar" onclick="actualizarEstado(${s.fila}, 'Aprobado')">Aprobar</button>
+              <button class="btn-denegar" onclick="actualizarEstado(${s.fila}, 'Denegado')">Denegar</button>
+            </td>` : ''}
+        </tr>
+      `;
+
+      // Carga los días aprobados para cada solicitud
+      google.script.run.withSuccessHandler(total => {
+        const celda = document.getElementById(`dias-${idx}`);
+        if (celda) celda.innerText = total;
+      }).contarDiasAprobados(s.email);
+    });
+
+    html += `</tbody></table>`;
+    contenedor.innerHTML = html;
+  }
+
+  function actualizarEstado(fila, nuevoEstado) {
+    google.script.run
+      .withSuccessHandler(() => {
+        const mensaje = document.getElementById("mensajeEstado");
+        mensaje.textContent = `✅ Solicitud ${nuevoEstado.toLowerCase()} correctamente.`;
+        mensaje.style.color = "green";
+        cargarSolicitudesPendientes();
+        window.dispatchEvent(new CustomEvent('estadoActualizado'));
+        setTimeout(() => mensaje.textContent = "", 3000);
+      })
+      .withFailureHandler(err => {
+        const mensaje = document.getElementById("mensajeEstado");
+        mensaje.textContent = `❌ Error al actualizar: ${err.message || err}`;
+        mensaje.style.color = "red";
+        setTimeout(() => mensaje.textContent = "", 4000);
+      })
+      .actualizarEstado(fila, nuevoEstado);
+  }
+
+  // Carga inicial
+  cargarSolicitudesPendientes();
+
+  // Recarga al recibir eventos relevantes
+  window.addEventListener('solicitudEnviada', cargarSolicitudesPendientes);
+  window.addEventListener('estadoActualizado', cargarSolicitudesPendientes);
+</script>

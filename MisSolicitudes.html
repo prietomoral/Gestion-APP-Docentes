@@ -1,0 +1,57 @@
+<div class="seccion" id="misSolicitudesSeccion">
+  <h3>Mis Solicitudes</h3>
+  <div id="listaMisSolicitudes">Cargando...</div>
+</div>
+
+<script>
+function cargarMisSolicitudes() {
+  google.script.run.withSuccessHandler(misSolicitudes => {
+    const contenedor = document.getElementById("listaMisSolicitudes");
+
+    if (!misSolicitudes || misSolicitudes.length === 0) {
+      contenedor.innerHTML = "<p>No has realizado ninguna solicitud.</p>";
+      return;
+    }
+
+    contenedor.innerHTML = misSolicitudes.map(s => {
+      let claseEstado = "";
+      let icono = "";
+
+      switch (s.estado) {
+        case "Aprobado":
+          claseEstado = "solicitud-aprobada";
+          icono = "✅";
+          break;
+        case "Denegado":
+          claseEstado = "solicitud-denegada";
+          icono = "❌";
+          break;
+        default:
+          claseEstado = "solicitud-pendiente";
+          icono = "⏳";
+          break;
+      }
+
+      return `
+        <div class="solicitud ${claseEstado}">
+          <p><strong>${s.fechaSolicitada}</strong> -
+            <span class="estado-icono">
+              ${icono}
+              <span class="estado-texto ${claseEstado}">${s.estado}</span>
+            </span>
+          </p>
+          <p><strong>Comentario:</strong> ${s.comentario || 'Ninguno'}</p>
+          <p><strong>Curso:</strong> ${s.anoEscolar || 'No especificado'}</p>
+          <p><small>Enviado: ${s.marcaTiempo}</small></p>
+        </div>
+      `;
+    }).join("");
+  }).obtenerMisSolicitudes();
+}
+
+
+  cargarMisSolicitudes();
+
+  window.addEventListener('solicitudEnviada', cargarMisSolicitudes);
+  window.addEventListener('estadoActualizado', cargarMisSolicitudes);
+</script>
