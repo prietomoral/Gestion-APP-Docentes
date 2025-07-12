@@ -366,7 +366,6 @@ function crearEventoEnCalendario(fechaISO, nombreDocente, estado) {
   Calendar.Events.insert(evento, CALENDAR_ID);
 }
 
-
 function obtenerMisSolicitudes() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Solicitudes");
   const email = Session.getActiveUser().getEmail();
@@ -380,16 +379,28 @@ function obtenerMisSolicitudes() {
       const marcaTiempo = fila[0] instanceof Date ? fila[0] : new Date(fila[0]);
 
       solicitudes.push({
-        fechaSolicitada: Utilities.formatDate(fechaSolicitada, Session.getScriptTimeZone(), "dd/MM/yyyy"),
+        fechaSolicitada: fechaSolicitada,
         estado: fila[3],
         comentario: fila[4] || "",
         anoEscolar: fila[5] || "",
-        marcaTiempo: Utilities.formatDate(marcaTiempo, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss")
+        marcaTiempo: marcaTiempo
       });
     }
   }
-  return solicitudes;
+
+  // Ordenar por marcaTiempo descendente (más reciente primero)
+  solicitudes.sort((a, b) => b.marcaTiempo - a.marcaTiempo);
+
+  // Formatear fechas para devolver
+  return solicitudes.map(solicitud => ({
+    fechaSolicitada: Utilities.formatDate(solicitud.fechaSolicitada, Session.getScriptTimeZone(), "dd/MM/yyyy"),
+    estado: solicitud.estado,
+    comentario: solicitud.comentario,
+    anoEscolar: solicitud.anoEscolar,
+    marcaTiempo: Utilities.formatDate(solicitud.marcaTiempo, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss")
+  }));
 }
+
 
 /**
  * Devuelve un array con las solicitudes pendientes cuya fecha está dentro de los próximos 15 días.
