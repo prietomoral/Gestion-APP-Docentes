@@ -239,14 +239,13 @@ function esFechaPermitida(fecha) {
 }
 
 
-function obtenerSolicitudesPendientes() {
+function obtenerSolicitudesTodas() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Solicitudes");
   const datos = hoja.getDataRange().getValues();
   const solicitudes = [];
 
   for (let i = 1; i < datos.length; i++) {
-    const fila = datos[i];
-    if (fila[3] === "Pendiente") {
+    const fila = datos[i]; 
       // Asegurar que sean objetos Date para comparar
       const fechaSolicitadaObj = fila[2] instanceof Date ? fila[2] : new Date(fila[2]);
       const marcaTiempoObj = fila[0] instanceof Date ? fila[0] : new Date(fila[0]);
@@ -261,7 +260,6 @@ function obtenerSolicitudesPendientes() {
         email: fila[6] || "",
         marcaTiempoObj
       });
-    }
   }
 
   // Ordenar por fechaSolicitadaObj y luego marcaTiempoObj, ascendente (más antiguo primero)

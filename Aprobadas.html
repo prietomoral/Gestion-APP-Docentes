@@ -1,0 +1,73 @@
+<div class="seccion" id="aprobadasSeccion">
+  <h3>Solicitudes Aprobadas</h3>
+  <div id="mensajeEstadoAprobadas" class="estado"></div>
+  <div id="tablaAprobadas">Cargando...</div>
+</div>
+
+<script>
+  function cargarSolicitudesAprobadas() {
+    google.script.run.withSuccessHandler(solicitudes => {
+      mostrarSolicitudesAprobadas(solicitudes);
+    }).obtenerSolicitudesTodas();
+  }
+
+  function mostrarSolicitudesAprobadas(solicitudes) {
+    const contenedor = document.getElementById('tablaAprobadas');
+
+    // Filtrar solo las aprobadas
+    const aprobadas = solicitudes.filter(s => s.estado?.toLowerCase() === 'aprobado');
+
+    if (!aprobadas || aprobadas.length === 0) {
+      contenedor.innerHTML = '<p>No hay solicitudes aprobadas.</p>';
+      return;
+    }
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha y Hora Solicitud</th>
+            <th>Usuario</th>
+            <th>Fecha solicitada</th>
+            <th>Estado</th>
+            <th>Comentario</th>
+            <th>Año escolar</th>
+            <th>Email</th>
+            <th>Días aprobados</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    aprobadas.forEach((s, idx) => {
+      html += `
+        <tr>
+          <td>${s.marcaTiempo || ''}</td>
+          <td>${s.usuario || ''}</td>
+          <td>${s.fechaSolicitada || ''}</td>
+          <td>${s.estado || ''}</td>
+          <td>${s.comentario || ''}</td>
+          <td>${s.anoEscolar || ''}</td>
+          <td>${s.email || ''}</td>
+          <td id="diasAprobadas-${idx}">Cargando...</td>
+        </tr>
+      `;
+
+      // Cargar días aprobados para cada solicitud
+      google.script.run.withSuccessHandler(total => {
+        const celda = document.getElementById(`diasAprobadas-${idx}`);
+        if (celda) celda.innerText = total;
+      }).contarDiasAprobados(s.email);
+    });
+
+    html += `</tbody></table>`;
+    contenedor.innerHTML = html;
+  }
+
+  // Carga inicial
+  cargarSolicitudesAprobadas();
+
+  // Escucha eventos de recarga
+  window.addEventListener('solicitudEnviada', cargarSolicitudesAprobadas);
+  window.addEventListener('estadoActualizado', cargarSolicitudesAprobadas);
+</script>

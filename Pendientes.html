@@ -8,65 +8,69 @@
   function cargarSolicitudesPendientes() {
     google.script.run.withSuccessHandler(esDireccion => {
       google.script.run.withSuccessHandler(solicitudes => {
-        mostrarSolicitudes(solicitudes, esDireccion);
-      }).obtenerSolicitudesPendientes();
+        mostrarSolicitudesPendientes(solicitudes, esDireccion);
+      }).obtenerSolicitudesTodas();
     }).esDireccion();
   }
 
-  function mostrarSolicitudes(solicitudes, esDireccion) {
-    const contenedor = document.getElementById('tabla');
-    if (!solicitudes || solicitudes.length === 0) {
-      contenedor.innerHTML = '<p>No hay solicitudes pendientes.</p>';
-      return;
-    }
+ function mostrarSolicitudesPendientes(solicitudes, esDireccion) {
+  const contenedor = document.getElementById('tabla');
 
-    let html = `
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha y Hora Solicitud</th>
-            <th>Usuario</th>
-            <th>Fecha solicitada</th>
-            <th>Estado</th>
-            <th>Comentario</th>
-            <th>Año escolar</th>
-            <th>Email</th>
-            <th>Días aprobados</th>
-            ${esDireccion ? '<th>Acciones</th>' : ''}
-          </tr>
-        </thead>
-        <tbody>
+  // ✅ Filtrar solo las pendientes
+  const pendientes = solicitudes.filter(s => s.estado?.toLowerCase() === 'pendiente');
+
+  if (!pendientes || pendientes.length === 0) {
+    contenedor.innerHTML = '<p>No hay solicitudes pendientes.</p>';
+    return;
+  }
+
+  let html = `
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha y Hora Solicitud</th>
+          <th>Usuario</th>
+          <th>Fecha solicitada</th>
+          <th>Estado</th>
+          <th>Comentario</th>
+          <th>Año escolar</th>
+          <th>Email</th>
+          <th>Días aprobados</th>
+          ${esDireccion ? '<th>Acciones</th>' : ''}
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  pendientes.forEach((s, idx) => {
+    html += `
+      <tr>
+        <td>${s.marcaTiempo || ''}</td>
+        <td>${s.usuario || ''}</td>
+        <td>${s.fechaSolicitada || ''}</td>
+        <td>${s.estado || ''}</td>
+        <td>${s.comentario || ''}</td>
+        <td>${s.anoEscolar || ''}</td>
+        <td>${s.email || ''}</td>
+        <td id="dias-${idx}">Cargando...</td>
+        ${esDireccion ? `
+          <td>
+            <button class="btn-aprobar" onclick="actualizarEstado(${s.fila}, 'Aprobado')">Aprobar</button>
+            <button class="btn-denegar" onclick="actualizarEstado(${s.fila}, 'Denegado')">Denegar</button>
+          </td>` : ''}
+      </tr>
     `;
 
-    solicitudes.forEach((s, idx) => {
-      html += `
-        <tr>
-          <td>${s.marcaTiempo || ''}</td>
-          <td>${s.usuario || ''}</td>
-          <td>${s.fechaSolicitada || ''}</td>
-          <td>${s.estado || ''}</td>
-          <td>${s.comentario || ''}</td>
-          <td>${s.anoEscolar || ''}</td>
-          <td>${s.email || ''}</td>
-          <td id="dias-${idx}">Cargando...</td>
-          ${esDireccion ? `
-            <td>
-              <button class="btn-aprobar" onclick="actualizarEstado(${s.fila}, 'Aprobado')">Aprobar</button>
-              <button class="btn-denegar" onclick="actualizarEstado(${s.fila}, 'Denegado')">Denegar</button>
-            </td>` : ''}
-        </tr>
-      `;
+    google.script.run.withSuccessHandler(total => {
+      const celda = document.getElementById(`dias-${idx}`);
+      if (celda) celda.innerText = total;
+    }).contarDiasAprobados(s.email);
+  });
 
-      // Carga los días aprobados para cada solicitud
-      google.script.run.withSuccessHandler(total => {
-        const celda = document.getElementById(`dias-${idx}`);
-        if (celda) celda.innerText = total;
-      }).contarDiasAprobados(s.email);
-    });
+  html += `</tbody></table>`;
+  contenedor.innerHTML = html;
+}
 
-    html += `</tbody></table>`;
-    contenedor.innerHTML = html;
-  }
 
   function actualizarEstado(fila, nuevoEstado) {
     google.script.run
