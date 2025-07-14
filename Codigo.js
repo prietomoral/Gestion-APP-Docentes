@@ -330,41 +330,32 @@ function crearEventoEnCalendario(fechaISO, nombreDocente, estado) {
     throw new Error("El parámetro 'estado' es requerido y no puede ser vacío");
   }
 
-  const CALENDAR_ID = "c_d231c3ae63f55eff5f8536bfbf197d2b9be889d103853371dc1abc1371f46280@group.calendar.google.com";
-
-  const fecha = new Date(fechaISO);
-  const fechaFin = new Date(fecha);
-  fechaFin.setDate(fechaFin.getDate() + 1);  // Evento todo el día, fin al siguiente día
-
-  let titulo, descripcion, colorId;
   const estadoNormalizado = estado.toLowerCase();
-
-  if (estadoNormalizado === "aprobado") {
-    titulo = `✅ AAPP Aprobado: ${nombreDocente}`;
-    descripcion = "Solicitud de día de asuntos particulares APROBADA";
-    colorId = "2";  // Verde oscuro
-  } else if (estadoNormalizado === "denegado") {
-    titulo = `❌ AAPP Denegado: ${nombreDocente}`;
-    descripcion = "Solicitud de día de asuntos particulares DENEGADA";
-    colorId = "6";  // Rojo claro
-  } else {
-    throw new Error("Estado inválido. Usa 'Aprobado' o 'Denegado'");
+  if (estadoNormalizado !== "aprobado") {
+    // No se crea evento si no está aprobado
+    return;
   }
 
+  const CALENDAR_ID = "c_d231c3ae63f55eff5f8536bfbf197d2b9be889d103853371dc1abc1371f46280@group.calendar.google.com";
+  const fecha = new Date(fechaISO);
+  const fechaFin = new Date(fecha);
+  fechaFin.setDate(fechaFin.getDate() + 1); // Evento de día completo
+
   const evento = {
-    summary: titulo,
-    description: descripcion,
+    summary: `✅ AAPP Aprobado: ${nombreDocente}`,
+    description: "Solicitud de día de asuntos particulares APROBADA",
     start: {
       date: Utilities.formatDate(fecha, Session.getScriptTimeZone(), "yyyy-MM-dd"),
     },
     end: {
       date: Utilities.formatDate(fechaFin, Session.getScriptTimeZone(), "yyyy-MM-dd"),
     },
-    colorId: colorId,
+    colorId: "2", // Verde oscuro
   };
 
   Calendar.Events.insert(evento, CALENDAR_ID);
 }
+
 
 function obtenerMisSolicitudes() {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Solicitudes");
