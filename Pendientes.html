@@ -16,7 +16,7 @@
  function mostrarSolicitudesPendientes(solicitudes, esDireccion) {
   const contenedor = document.getElementById('tabla');
 
-  // ✅ Filtrar solo las pendientes
+  // Filtrar solo las pendientes
   const pendientes = solicitudes.filter(s => s.estado?.toLowerCase() === 'pendiente');
 
   if (!pendientes || pendientes.length === 0) {
@@ -26,15 +26,15 @@
 
   let html = `
     <table>
-      <thead>
+      <thead class="thead-pendientes">
         <tr>
           <th>Fecha y Hora Solicitud</th>
-          <th>Usuario</th>
+          ${esDireccion ? '<th>Usuario</th>' : ''}
           <th>Fecha solicitada</th>
           <th>Estado</th>
-          <th>Comentario</th>
+          ${esDireccion ? '<th>Comentario</th>' : ''}
           <th>Año escolar</th>
-          <th>Email</th>
+          ${esDireccion ? '<th>Email</th>' : ''}
           <th>Días aprobados</th>
           ${esDireccion ? '<th>Acciones</th>' : ''}
         </tr>
@@ -46,12 +46,12 @@
     html += `
       <tr>
         <td>${s.marcaTiempo || ''}</td>
-        <td>${s.usuario || ''}</td>
+        ${esDireccion ? `<td>${s.usuario || ''}</td>` : ''}
         <td>${s.fechaSolicitada || ''}</td>
         <td>${s.estado || ''}</td>
-        <td>${s.comentario || ''}</td>
+        ${esDireccion ? `<td>${s.comentario || ''}</td>` : ''}
         <td>${s.anoEscolar || ''}</td>
-        <td>${s.email || ''}</td>
+        ${esDireccion ? `<td>${s.email || ''}</td>` : ''}
         <td id="dias-${idx}">Cargando...</td>
         ${esDireccion ? `
           <td>
