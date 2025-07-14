@@ -155,7 +155,7 @@ function validarAntelacion(fecha) {
   const hoy = new Date();
   hoy.setHours(0,0,0,0);
   const difDias = (fecha - hoy) / (1000*60*60*24);
-  if (difDias < 15) throw new Error("❌ Debes solicitar al menos con 15 días de antelación.");
+  if (difDias < 16) throw new Error("❌ Debes solicitar al menos con 16 días de antelación.");
 }
 
 // 3. No solicitar en fin de semana
@@ -198,7 +198,7 @@ function validarLimiteDias(fecha, email, anoEscolar, hoja) {
     }
   }
   if (lectivo >= 3) throw new Error("❌ Ya alcanzaste los 3 días lectivos permitidos.");
-  if (noLectivo >= 1) throw new Error("❌ Ya usaste tu día no lectivo permitido.");
+ 
 }
 
 
@@ -475,7 +475,9 @@ function avisarSolicitudesProximasAVencer() {
    
   });
 
-  cuerpo += "\nPuedes revisarlas desde el panel de gestión habitual.";
+  cuerpo += "\nPuedes revisarlas desde el panel de gestión habitual:";
+  cuerpo += "\n🔗 " + "https://script.google.com/a/macros/iesosierralamesta.com/s/AKfycbyMF_-Zj9rwgElUKjkSCrIfJPhAb5jhxoHEN24pFICwKu98sKy24L-XJe7n0os4Yef8/exec";
+
 
   const asunto = "📌 *ASUNTOS PARTICULARES - Solicitudes próximas a vencer (pendientes de revisión)";
   destinatarios.forEach(email => {
