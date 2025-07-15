@@ -127,6 +127,9 @@ function enviarSolicitud(fechaSolicitada, comentario) {
   validarDuplicado(fecha, email, anoEscolar, hoja);
   validarLimiteDias(fecha, email, anoEscolar, hoja);
 
+  // 🚩 Nueva validación modularizada: no permitir si ya existe aprobado ese mismo día
+  validarNoDuplicadoGlobalAprobado(fecha, hoja);
+
   const resultado = esFechaPermitida(fecha);
   if (!resultado.valido) {
     throw new Error("❌ No se puede solicitar ese día: " + resultado.motivo);
@@ -215,8 +218,29 @@ function validarMaxAntelacion(fecha) {
   }
 }
 
-//Valida q no sea una excepcion 15 primeros dias lectivos o evaluaciones
 
+function validarNoDuplicadoGlobalAprobado(fecha, hoja) {
+  const ultimaFila = hoja.getLastRow();
+  if (ultimaFila < 2) return; // No hay datos
+
+  const fechas = hoja.getRange(2, 3, ultimaFila - 1, 1).getValues(); // Columna C
+  const estados = hoja.getRange(2, 4, ultimaFila - 1, 1).getValues(); // Columna D
+
+  for (let i = 0; i < fechas.length; i++) {
+    if (estados[i][0] === "Aprobado") {
+      const fechaFilaDate = fechas[i][0] instanceof Date ? fechas[i][0] : new Date(fechas[i][0]);
+      fechaFilaDate.setHours(0, 0, 0, 0);
+
+      if (fechaFilaDate.getTime() === fecha.getTime()) {
+        throw new Error("❌ Ya existe una solicitud aprobada para ese día. No puedes solicitarlo.");
+      }
+    }
+  }
+}
+
+
+
+//Valida q no sea una excepcion 15 primeros dias lectivos o evaluaciones
 function esFechaPermitida(fecha) {
   const hoja = SpreadsheetApp.getActive().getSheetByName("Excepciones");
   if (!hoja) return { valido: true };
