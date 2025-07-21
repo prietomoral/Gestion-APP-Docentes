@@ -42,6 +42,7 @@ function cargarMisSolicitudes() {
           </p>
           <p><strong>Comentario:</strong> ${s.comentario || 'Ninguno'}</p>
           <p><strong>Curso:</strong> ${s.anoEscolar || 'No especificado'}</p>
+          ${s.estado === "Denegado" ? `<p><strong>Motivo de la denegación:</strong> ${s.motivoDenegacion || 'No indicado'}</p>` : ""}
           <p><small>Enviado: ${s.marcaTiempo}</small></p>
         </div>
       `;

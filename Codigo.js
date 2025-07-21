@@ -307,9 +307,13 @@ function obtenerSolicitudesTodas() {
 
 
 
-function actualizarEstado(fila, nuevoEstado) {
+function actualizarEstado(fila, nuevoEstado,motivoDenegacion = "") {
   const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Solicitudes");
   hoja.getRange(fila, 4).setValue(nuevoEstado); // Columna D = Estado
+
+  if (nuevoEstado === "Denegado") {
+    hoja.getRange(fila, 8).setValue(motivoDenegacion); // Columna H = Motivo de denegación
+  }
 
   const datos = hoja.getRange(fila, 1, 1, 7).getValues()[0];
   const nombre = datos[1];           // Columna B = nombre
@@ -318,7 +322,7 @@ function actualizarEstado(fila, nuevoEstado) {
 
   if (nuevoEstado === "Aprobado" || nuevoEstado === "Denegado") {
     crearEventoEnCalendario(fechaPedida, nombre, nuevoEstado);
-    enviarCorreoNotificacion(emailSolicitante, nombre, fechaPedida, nuevoEstado);
+    enviarCorreoNotificacion(emailSolicitante, nombre, fechaPedida, nuevoEstado,motivoDenegacion);
   }
 
   return "ok"; // ✅ Esto evita el mensaje "null"
@@ -331,16 +335,16 @@ function actualizarEstado(fila, nuevoEstado) {
  * @param {Date} fecha Fecha solicitada
  * @param {string} estado Estado nuevo ("Aprobado" o "Denegado")
  */
-function enviarCorreoNotificacion(destinatario, nombreDocente, fecha, estado) {
+function enviarCorreoNotificacion(destinatario, nombreDocente, fecha, estado,motivo = "") {
   const asunto = `Notificación de solicitud de día de asuntos particulares: ${estado}`;
   const fechaFormateada = Utilities.formatDate(new Date(fecha), Session.getScriptTimeZone(), "dd/MM/yyyy");
   let cuerpo = `Hola ${nombreDocente},\n\n` +
                `Tu solicitud para el día ${fechaFormateada} ha sido ${estado.toLowerCase()}.\n\n`;
 
   if (estado === "Aprobado") {
-    cuerpo += "Puedes considerarlo confirmado en tu calendario.\n\n¡Gracias!";
+    cuerpo += "Puedes considerarlo confirmado en el calendario y en tu panel.\n\n¡Gracias!";
   } else if (estado === "Denegado") {
-    cuerpo += "Si tienes dudas, contacta con la dirección.\n\nSaludos.";
+    cuerpo += `📝 *Motivo de la denegación*: ${motivo || "No especificado"}\n\nSi tienes dudas, contacta con la dirección.\n\nSaludos.`;
   }
 
   MailApp.sendEmail(destinatario, asunto, cuerpo);
@@ -396,7 +400,8 @@ function obtenerMisSolicitudes() {
         estado: fila[3],
         comentario: fila[4] || "",
         anoEscolar: fila[5] || "",
-        marcaTiempo: marcaTiempo
+        marcaTiempo: marcaTiempo, 
+        motivoDenegacion: fila[7] || ""  // Columna H = Motivo de denegación
       });
     }
   }
@@ -410,7 +415,8 @@ function obtenerMisSolicitudes() {
     estado: solicitud.estado,
     comentario: solicitud.comentario,
     anoEscolar: solicitud.anoEscolar,
-    marcaTiempo: Utilities.formatDate(solicitud.marcaTiempo, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss")
+    marcaTiempo: Utilities.formatDate(solicitud.marcaTiempo, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss"),
+    motivoDenegacion: solicitud.motivoDenegacion  
   }));
 }
 
